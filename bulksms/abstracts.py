@@ -58,6 +58,18 @@ class UpdateBulksmsStatus(BaseModel):
     status: str
     modified_at: datetime = datetime.now()
 
+
+class BulksmsInfoAbstract(BaseModel):
+    id: UUID = uuid.uuid4()
+    sms_status: str
+    sms_cost: float
+    contact_name: str
+    contact_number: str
+    created_at: datetime = datetime.now()
+    modified_at: datetime = datetime.now()
+    modified_at: datetime = datetime.now()
+
+
 class DbBulksmsAbstract(BaseModel):
     id: UUID
     workspace_id: UUID

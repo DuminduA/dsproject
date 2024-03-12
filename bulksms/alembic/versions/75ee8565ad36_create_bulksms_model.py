@@ -39,7 +39,7 @@ def upgrade() -> None:
         sa.Column('sms_status', sa.String(length=10)),
         sa.Column('contact_number', sa.String(length=15)),
         sa.Column('contact_name', sa.String(length=30)),
-        sa.Column('total_cost', sa.Float(), default=0),
+        sa.Column('sms_cost', sa.Float(), default=0),
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.func.now()),
         sa.Column('modified_at', sa.DateTime(), nullable=False, server_default=sa.func.now()),
         sa.PrimaryKeyConstraint('id'),

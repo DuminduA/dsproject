@@ -1,8 +1,8 @@
 import json
 from database import DbConnection
-from .models import Bulksms
+from .models import Bulksms, BulksmsInfo
 from sqlalchemy.orm import Session
-from .abstracts import BulksmsAbstract, UpdateBulksmsStatus
+from .abstracts import BulksmsAbstract, BulksmsInfoAbstract, UpdateBulksmsStatus
 from datetime import datetime
 import uuid
 
@@ -21,7 +21,7 @@ class BulksmsRepository:
         query = """
             SELECT * FROM bulksms WHERE id = :bulksms_id
         """
-        row = await self.db.fetch_one(query=query, values={"bulksms_id": uuid.UUID(bulksms_id)})
+        row = await self.db.fetch_one(query=query, values={"bulksms_id": bulksms_id})
         return row
         
     async def create_bulksms(self, data:dict):
@@ -70,3 +70,67 @@ class BulksmsRepository:
             }
         )
         return bulksms
+    
+    async def add_bulksms_info_data(self, bulksms_id: uuid.UUID, contact_number: str, sms_status:str, sms_cost:float):
+        validated_data = BulksmsInfoAbstract(
+            bulksms_id=bulksms_id,
+            contact_number=contact_number,
+            contact_name=contact_number,
+            sms_status=sms_status,
+            sms_cost=sms_cost
+        )
+        bulksms_info = BulksmsInfo(**validated_data.dict())
+        query = """
+            INSERT INTO bulksms_info (
+                id,bulksms_id, contact_number, contact_name,
+                sms_status, sms_cost, created_at, modified_at
+            )
+            VALUES (
+                :id, :bulksms_id, :contact_number, :contact_name,
+                :sms_status, :sms_cost, :created_at, :modified_at
+            )
+        """
+        # Execute the SQL query with parameters
+        await self.db.execute(
+            query,
+            values = {
+                "id": bulksms_info.id,
+                "bulksms_id": bulksms_id,
+                "contact_number": bulksms_info.contact_number,
+                "contact_name": bulksms_info.contact_name,
+                "sms_status": bulksms_info.sms_status,
+                "sms_cost": bulksms_info.sms_cost,
+                'created_at': bulksms_info.created_at,
+                'modified_at': bulksms_info.modified_at,
+            }
+        )
+        return bulksms_info
+    
+    
+    async def get_bulksms_info_data(self, bulksms_id: uuid.UUID, contact: str):
+        query = """
+            SELECT id, bulksms_id, contact_number, contact_name,
+                sms_status, sms_cost
+            FROM bulksms_info
+            WHERE bulksms_id = :bulksms_id AND contact_number = :contact_number
+        """
+        values = {
+            "bulksms_id": bulksms_id,
+            "contact_number": contact,
+        }
+        return await self.db.fetch_one(query=query, values=values)
+
+    async def update_bulksms_info_data(self, bulksms_id:  uuid.UUID, sms_cost:float, sms_status:str):
+        query = """
+            UPDATE bulksms_info
+            SET sms_cost = :sms_cost, sms_status = :sms_status
+            WHERE bulksms_id = :bulksms_id
+        """
+        values = {
+            "bulksms_id": bulksms_id,
+            "sms_cost": sms_cost,
+            "sms_status": sms_status,
+        }
+        await self.db.execute(
+            query=query, values=values
+            )

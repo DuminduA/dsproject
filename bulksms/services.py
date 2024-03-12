@@ -1,8 +1,9 @@
 from shortid import ShortId
 from .repository import BulksmsRepository
-from .models import Bulksms
+from .models import Bulksms, BulksmsInfo
 import grpc
 from uuid import UUID
+from loguru import logger
 
 class BulksmsServices:
     def __init__(self, db):
@@ -43,3 +44,39 @@ class BulksmsServices:
                 if e.code() == grpc.StatusCode.NOT_FOUND:
                     return None
                 raise e
+            
+    async def add_bulksms_info_data(
+        self,
+        bulksms_id: UUID,
+        workspace: UUID,
+        contact: str,
+        sms_status: str,
+        price: float,
+    ):
+        saved_info = await self.bulksms_repository.get_bulksms_info_data(
+            bulksms_id, contact
+        )
+        logger.warning(saved_info)
+        if saved_info:
+            info_data = await self.bulksms_repository.update_bulksms_info_data(
+                bulksms_id=bulksms_id,
+                sms_status=(
+                    saved_info.sms_status
+                    if saved_info.sms_status
+                    in ["failed, delivered", "undelivered"]
+                    else sms_status
+                ),
+                sms_cost=(
+                    saved_info.sms_cost
+                    if saved_info.sms_cost > 0
+                    else price
+                )
+            )
+        else:
+            info_data = await self.bulksms_repository.add_bulksms_info_data(
+                    bulksms_id=bulksms_id,
+                    sms_status=sms_status,
+                    contact_number=contact,
+                    sms_cost=price,
+            )
+        return info_data

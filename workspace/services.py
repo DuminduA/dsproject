@@ -43,15 +43,15 @@ async def send_bulksms_message(
     # redis_conn = Redis.from_url(
     #     settings.redis_settings, decode_responses=True, encoding="utf-8"
     # )
-
-    await queue.sales_call(
-        "save_bulksms_campaign_info",
-        bulksms_sid,
-        workspace_sid,
-        {
-            "number": message_to,
-            "status": "failed",
-            "price": 0,
-        },
-        contact_count,
-    )
+    for each in ["queued", "sent", "delivered"]:
+        await queue.sales_call(
+            "save_bulksms_campaign_info",
+            bulksms_sid,
+            workspace_sid,
+            {
+                "number": message_to,
+                "status": each,
+                "price": 0.1,
+            },
+            contact_count,
+        )

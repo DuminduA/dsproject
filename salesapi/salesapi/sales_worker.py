@@ -1,21 +1,16 @@
-from salesapi import settings as config
-from krispcall.addon.databases.bootstrap import init_database
+from salesapi.salesapi import settings as config
 from arq.connections import RedisSettings
-from krispcall.common.core import bootstrap
-from krispcall.bulksms.entrypoints.queue_handlers import (
+import bootstrap
+from bulksms.queue_handlers import (
     save_bulksms_campaign_info,
-    task_update_bulksms_estimated_cost,
-    task_update_bulksms_campaign,
-    task_update_bulksms_create_by_name,
-    task_update_bulksms_total_cost,
-    task_get_intermediate_state_sms,
+    # task_update_bulksms_campaign
 )
 
 
 async def startup(ctx):
     settings = config.get_application_settings()
     ctx["settings"] = settings
-    ctx["db"] = init_database(ctx["settings"])
+    ctx["db"] = bootstrap.init_database(ctx["settings"])
     ctx["broadcaster"] = bootstrap.init_broadcaster(ctx["settings"])
     ctx["queue"] = bootstrap.init_queue(ctx["settings"])
     await ctx["db"].connect()
@@ -27,16 +22,12 @@ async def shutdown(ctx):
     await ctx["db"].disconnect()
 
 
-class RpcWorker:
+class WorkerSettings:
     settings = config.get_application_settings()
 
     functions = [
         save_bulksms_campaign_info,
-        task_update_bulksms_estimated_cost,
-        task_update_bulksms_campaign,
-        task_update_bulksms_create_by_name,
-        task_update_bulksms_total_cost,
-        task_get_intermediate_state_sms,
+        # task_update_bulksms_campaign,
     ]
     queue_name = "arq:sales_queue"
     on_startup = startup
