@@ -15,15 +15,18 @@ from salesapi.salesapi.middlewares import load_middlewares
 # load environment variables.
 load_dotenv()
 from starlette.middleware.cors import CORSMiddleware
+from bulksms.routes import *
 # from admin.admin import admin as app_admin
 # Init application.
 routes = [
-    # Mount("/user", routes=UserRoutes.routes),
+    Mount("", routes=Routes.routes),
     # Mount("/product", routes=ProductRoutes.routes),
     # Route("/cart", endpoint=add_product_to_cart, methods=["POST"]),
     # Route("/cart", endpoint=get_user_cart, methods=["GET"])
     
 ]
+
+print(routes)
 
 # Define middleware
 
@@ -33,17 +36,15 @@ middlewares = [
 ]
 
 
-ROUTES = []
-
-
 def create_app(settings) -> Starlette:
     db = init_database(settings)
     queue = bootstrap.init_queue(settings)
     broadcast = bootstrap.init_broadcaster(settings)
     _middlewares = load_middlewares(settings)
+    print(routes)
     app = Starlette(
         debug=settings.debug,
-        routes=ROUTES,
+        routes=routes,
         middleware=_middlewares,
         on_startup=[
             db.connect,
@@ -62,7 +63,7 @@ def create_app(settings) -> Starlette:
 app = create_app(settings.get_application_settings())
 
 
-app = Starlette(
-    routes=routes,
-    middleware=middlewares,
-)
+# app = Starlette(
+#     routes=routes,
+#     middleware=middlewares,
+# )

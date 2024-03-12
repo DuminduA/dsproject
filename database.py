@@ -41,7 +41,11 @@ class DbTransaction(typing.Protocol):
 
 
 class DbConnection(typing.Protocol):
+    
     async def commit(self) -> None:
+        raise NotImplementedError()
+    
+    async def add(self) -> None:
         raise NotImplementedError()
 
     async def rollback(self) -> None:
