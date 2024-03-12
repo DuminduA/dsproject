@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package my_service;
+
+message WorkspaceCreditRequest {
+  string workspace_id = 1;
+}
+
+message WorkspaceCreditResponse {
+  float workspace_credit = 1;
+}
+
+service WorkspaceCredit {
+  rpc GetWorkspaceCredit (WorkspaceCreditRequest) returns (WorkspaceCreditResponse);
+}

@@ -27,6 +27,7 @@ def upgrade() -> None:
         sa.Column('message', sa.Text()),
         sa.Column('contact_count', sa.Integer(), default=0),
         sa.Column('total_cost', sa.Float(), default=0),
+        sa.Column("all_contacts", JSONB, nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.func.now()),
         sa.Column('modified_at', sa.DateTime(), nullable=False, server_default=sa.func.now()),
         sa.PrimaryKeyConstraint('id')

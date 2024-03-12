@@ -9,7 +9,7 @@ def prepare_contact_list_for_estimation_csv(all_contacts):
     contact_list = [
         {
             "contact_number": data["Phone Number"],
-            "contact_name": data["Full Name"],
+            "contact_name": data["Contact Name"],
         }
         for data in all_contacts
     ]
@@ -72,7 +72,7 @@ async def csv_file_to_df(
 async def process_contacts_csv(
     csv_file: UploadFile,
     contact_number_column: str = "phone number",
-    contact_name_column: str = "full name",
+    contact_name_column: str = "contact name",
     usecols: typing.List[str] = None,
     dtype: typing.Dict = None,
 ) -> typing.List[dict]:
@@ -101,8 +101,8 @@ async def process_contacts_csv(
             dtype=dtype,
         )
     # Incase of invalid csv, use cols error, catch and raise '400' in resolver
-    except ValueError:
-        raise Exception()
+    except ValueError as e:
+        raise Exception(e)
 
     # clean phone number
     df[contact_number_column] = df[contact_number_column].apply(

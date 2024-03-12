@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Json
 from uuid import UUID
 from datetime import datetime
 
@@ -27,21 +27,16 @@ from datetime import datetime
 
 from pydantic import BaseModel
 import uuid
-class ProductAbstract(BaseModel):
-    name:str
-    description:str
-    price:int
-    quantity:int=200
-    # image:list = []
-
-class DatabaseProductAbstract(BaseModel):
-    id:uuid.UUID
-    name:str
-    description:str
-    price:int
-    quantity:int
-    # image:list = []
-
+import typing 
+from typing import List, Dict
+from shortid import ShortId
+class SendBulkSms(BaseModel):
+    content: str
+    # sender_number: str
+    contacts: List[Dict]
+    workspace: ShortId
+    bulksms_id: ShortId
+    # estimated_cost: float
 
 
 class BulksmsAbstract(BaseModel):
@@ -55,7 +50,13 @@ class BulksmsAbstract(BaseModel):
     contact_count: int = 0
     created_at: datetime = datetime.now()
     modified_at: datetime = datetime.now()
+    all_contacts: list = None
 
+
+class UpdateBulksmsStatus(BaseModel):
+    id: UUID = uuid.uuid4()
+    status: str
+    modified_at: datetime = datetime.now()
 
 class DbBulksmsAbstract(BaseModel):
     id: UUID

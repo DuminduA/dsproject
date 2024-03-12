@@ -13,6 +13,7 @@ import bootstrap
 # from krispcall.webmaster.entrypoints.queue_handlers import send_webmaster_email
 
 from webapi.webapi import config
+from workspace.queue_handlers import run_bulksms_campaign
 
 # from arq import cron
 
@@ -52,7 +53,7 @@ class WorkerSettings:
 
     functions = [
         # send_webmaster_email
-        test_job
+        run_bulksms_campaign
     ]
 
     queue_name = "arq:general_queue"

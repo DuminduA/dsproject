@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, DateTime, ForeignKey, Float, Text, Enum, 
 from .database import Base
 from datetime import datetime
 import uuid
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 
 class Bulksms(Base):
@@ -14,6 +14,7 @@ class Bulksms(Base):
     message = Column(Text(), nullable=True)
     contact_count = Column(Integer(), default=0)
     workspace_id = Column(UUID(as_uuid=False), nullable=False)
+    all_contacts = Column(JSONB(), nullable=True)
     total_cost = Column(Float(), default=0.0, nullable=False)
     created_at = Column(DateTime(), nullable=True, default=datetime.utcnow)
     modified_at = Column(DateTime(), nullable=True, default=datetime.utcnow)
