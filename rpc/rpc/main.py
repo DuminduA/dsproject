@@ -10,7 +10,7 @@ from bootstrap import init_database, init_queue, init_broadcaster
 
 from redis import Redis
 
-from credit import workspace_credit_pb2_grpc
+import workspace_credit_pb2_grpc
 from credit.server import WorkspaceCredit 
 
 

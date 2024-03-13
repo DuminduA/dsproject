@@ -65,9 +65,10 @@ async def run_bulksms(request: Request):
     bulksms_id = data["bulksms_id"]
     bulksms = await bulksms_service.get_bulksms_by_id(bulksms_id=bulksms_id)
     print(bulksms)
-    # workspace_credit = await bulksms_service.grpc_get_workspace_credit(
-    #     bulksms["workspace_id"]
-    # )
+    workspace_credit = await bulksms_service.grpc_get_workspace_credit(
+        bulksms["workspace_id"]
+    )
+    print(workspace_credit)
     workspace_credit = 10
     await bulksms_service.update_bulksms_status(
             bulksms_id=bulksms_id, status="inprogress"

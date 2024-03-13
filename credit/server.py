@@ -1,4 +1,4 @@
-from credit import workspace_credit_pb2, workspace_credit_pb2_grpc
+import workspace_credit_pb2, workspace_credit_pb2_grpc
 from database import DbConnection
 
 

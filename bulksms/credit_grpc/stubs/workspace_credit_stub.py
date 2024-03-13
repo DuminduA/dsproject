@@ -13,7 +13,7 @@ class WorkspaceCreditStub(object):
             channel: A grpc.Channel.
         """
         self.GetWorkspaceCredit = channel.unary_unary(
-            "/workspace_credit.WorkspaceCredit/GetWorkspaceCredit",
-            request_serializer=workspace__credit__pb2.WorkspaceCreditRequest.SerializeToString,
-            response_deserializer=workspace__credit__pb2.WorkspaceCreditResponse.FromString,
-        )
+                '/my_service.WorkspaceCredit/GetWorkspaceCredit',
+                request_serializer=workspace__credit__pb2.WorkspaceCreditRequest.SerializeToString,
+                response_deserializer=workspace__credit__pb2.WorkspaceCreditResponse.FromString,
+                )
