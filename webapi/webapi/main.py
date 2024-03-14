@@ -1,46 +1,26 @@
+from uuid import UUID
 from starlette.applications import Starlette
-from starlette.routing import Route, Mount
-from starlette.middleware.authentication import AuthenticationMiddleware
-from starlette.middleware import Middleware
-from cryptography.fernet import Fernet
-import os
 from dotenv import load_dotenv
-import os
+from shortid import ShortId
+from workspace import views
+from starlette.websockets import WebSocket
+from starlette.endpoints import WebSocketEndpoint
+import json
+import typing
 
 # load environment variables.
 load_dotenv()
-from starlette.middleware.cors import CORSMiddleware
-
 
 
 from bootstrap import (
     init_database,
 )
 
-from starlette.applications import Starlette
-from starlette.routing import Mount
 
 from webapi.webapi import config
 from webapi.webapi.middlewares import load_middlewares
 import bootstrap
 
-# ROUTES = (
-#     [
-#         Mount(
-#             "/api/" + config.API_BASE_VERSION,
-#             routes=[
-#                 Mount("/graphql/", graphql),
-#             ]
-#             + common_routes
-#             + billing_routes
-#             + integration_routes
-#             + krispcall_integration_routes,
-#         ),
-#     ]
-#     + routes
-#     + callroutes
-#     + webmaster_routes
-# )
 ROUTES = []
 
 
@@ -70,10 +50,44 @@ def create_app(settings) -> Starlette:
 app = create_app(config.get_application_settings())
 
 
-# key = bytes(os.getenv("FERNET_PRIVATE_KEY").encode('utf-8'))
-# cryptographer = Fernet(key=key)
+connected_websockets: set = set()
+
+class WorkspaceCreditWebSocketEndpoint(WebSocketEndpoint):
+    async def __call__(self, websocket: WebSocket):
+        # Add the new WebSocket instance to the set of connected WebSockets
+        connected_websockets.add(websocket)
+        try:
+            await self.listen_workspace_credit(websocket)
+        finally:
+            # Remove the WebSocket instance when the connection is closed
+            connected_websockets.remove(websocket)
+    async def on_connect(self, websocket: WebSocket):
+        await websocket.accept()
+    
+    async def on_receive(self, websocket: WebSocket, data: str):
+        try:
+            payload = json.loads(data)
+            if 'workspace_id' in payload:
+                workspace_id = ShortId(payload['workspace_id']).uuid()
+                await self.listen_workspace_credit(workspace_id, websocket)
+        except json.JSONDecodeError:
+            pass
+    
+    async def on_disconnect(self, websocket: WebSocket, close_code: int):
+        pass
+    
+    async def listen_workspace_credit(self, workspace_id: UUID, websocket: WebSocket):
+        previous_credit = None
+        credit_update = await views.get_workspace_credit(ShortId.with_uuid(workspace_id), app.state.db)
+        if credit_update != previous_credit:
+            await websocket.send_text(json.dumps({"credit": credit_update["credit"]}))
+            previous_credit = credit_update
 
 
-# Application states.
-# app.state.cryptographer = cryptographer
+async def send_credit_update_to_websockets(credit_update: typing.Dict):
+    print(len(connected_websockets))
+    for websocket in connected_websockets:
+        print("ran through here")
+        await websocket.send_text(json.dumps(credit_update))
 
+app.add_websocket_route("/ws", WorkspaceCreditWebSocketEndpoint)

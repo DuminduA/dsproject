@@ -54,50 +54,44 @@ async def create_bulksms(request):
     #     )
     
 async def run_bulksms(request: Request):
-    # try:
-    db_conn = request.app.state.db
-    data = await request.json()  # Assuming data is sent as JSON in the request body
+    try:
+        db_conn = request.app.state.db
+        data = await request.json()  # Assuming data is sent as JSON in the request body
 
-    # Your authentication and permission checks can be performed here
+        # Your authentication and permission checks can be performed here
 
-    # Extract necessary data from the request
-    bulksms_service = BulksmsServices(db_conn)
-    bulksms_id = data["bulksms_id"]
-    bulksms = await bulksms_service.get_bulksms_by_id(bulksms_id=bulksms_id)
-    print(bulksms)
-    workspace_credit = await bulksms_service.grpc_get_workspace_credit(
-        bulksms["workspace_id"]
-    )
-    print(workspace_credit)
-    workspace_credit = 10
-    await bulksms_service.update_bulksms_status(
-            bulksms_id=bulksms_id, status="inprogress"
+        # Extract necessary data from the request
+        bulksms_service = BulksmsServices(db_conn)
+        bulksms_id = data["bulksms_id"]
+        bulksms = await bulksms_service.get_bulksms_by_id(bulksms_id=bulksms_id)
+        workspace_credit = await bulksms_service.grpc_get_workspace_credit(
+            bulksms["workspace_id"]
         )
-    print(dict(bulksms))
-    await request.app.state.queue.run_task(
-        "run_bulksms_campaign",
-        abstracts.SendBulkSms(
-            content=bulksms["message"],
-            contacts=json.loads(bulksms["all_contacts"]),
-            workspace=ShortId.with_uuid(bulksms["workspace_id"]),
-            bulksms_id=ShortId.with_uuid(bulksms['id']),
-            # estimated_cost=campaign["estimated_cost"],
-        ),
-        _queue_name="arq:general_queue",
-    )
+        if workspace_credit < 0.1:
+            raise ValueError("Low on credit")
+        await bulksms_service.update_bulksms_status(
+                bulksms_id=bulksms_id, status="inprogress"
+            )
+        print(dict(bulksms))
+        await request.app.state.queue.run_task(
+            "run_bulksms_campaign",
+            abstracts.SendBulkSms(
+                content=bulksms["message"],
+                contacts=json.loads(bulksms["all_contacts"]),
+                workspace=ShortId.with_uuid(bulksms["workspace_id"]),
+                bulksms_id=ShortId.with_uuid(bulksms['id']),
+                # estimated_cost=campaign["estimated_cost"],
+            ),
+            _queue_name="arq:general_queue",
+        )
+        response_data = {
+            "status": 200,
+            "data": {"success": True},
+            "error": None
+        }
 
-    # Perform necessary business logic using your services and views
-    # Example: Call views.get_bulksms_campaign_detail, services.update_bulksms_campaign_status, etc.
+        return JSONResponse(response_data)
 
-    # Construct the response data
-    response_data = {
-        "status": 200,
-        "data": {"success": True},
-        "error": None
-    }
-
-    return JSONResponse(response_data)
-
-    # except ValidationError as e:
-    #     error_message = "Invalid input: " + str(e)
-    #     return JSONResponse({"error": error_message}, status_code=400)
+    except ValueError as e:
+        error_message = str(e)
+        return JSONResponse({"error": error_message}, status_code=400)

@@ -33,6 +33,7 @@ async def run_bulksms_campaign(
         workspace_id,
         settings,
         ctx["queue"],
+        ctx["broadcaster"]
     )
 
 

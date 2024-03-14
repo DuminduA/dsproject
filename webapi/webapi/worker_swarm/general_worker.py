@@ -35,7 +35,7 @@ async def startup(ctx):
     ctx["broadcaster"] = bootstrap.init_broadcaster(ctx["settings"])
     ctx["queue"] = bootstrap.init_queue(ctx["settings"])
     await ctx["broadcaster"].connect()
-    # await ctx["db"].connect()
+    await ctx["db"].connect()
     await ctx["queue"].connect()
 
 
