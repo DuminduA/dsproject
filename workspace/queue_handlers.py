@@ -27,6 +27,7 @@ async def run_bulksms_campaign(
     db_conn = ctx["db"]
     workspace_id = ShortId(validated_data.workspace).uuid()
     settings = ctx["settings"]
+    print(validated_data.contacts)
     await services.run_bulksms_campaign(
         validated_data,
         db_conn,

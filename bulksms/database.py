@@ -5,6 +5,6 @@ import os
 
 
 # Database settings.
-engine = create_engine(f"postgresql://postgres:postgres@localhost:5432/salesdb?sslmode=require")
+engine = create_engine(f"postgresql://postgres:postgres@localhost:5433/salesdb?sslmode=require")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

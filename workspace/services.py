@@ -1,4 +1,6 @@
 import asyncio
+import random
+import time
 import typing
 from uuid import UUID
 from bootstrap import JobQueue
@@ -94,6 +96,7 @@ async def send_bulksms_message(
     #     settings.redis_settings, decode_responses=True, encoding="utf-8"
     # )
     for each in ["queued", "sent", "delivered"]:
+        defer_by_seconds = random.uniform(5, 10)
         await queue.sales_call(
             "save_bulksms_campaign_info",
             bulksms_sid,
@@ -104,6 +107,7 @@ async def send_bulksms_message(
                 "price": 0.1,
             },
             contact_count,
+            defer_by_seconds=defer_by_seconds
         )
         if each == 'sent':
             print("reached_here")

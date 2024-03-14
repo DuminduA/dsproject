@@ -85,7 +85,6 @@ class WorkspaceCreditWebSocketEndpoint(WebSocketEndpoint):
 
 
 async def send_credit_update_to_websockets(credit_update: typing.Dict):
-    print(len(connected_websockets))
     for websocket in connected_websockets:
         print("ran through here")
         await websocket.send_text(json.dumps(credit_update))

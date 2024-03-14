@@ -138,7 +138,7 @@ def init_worker_database(settings: AppSettings) -> Database:
         )
     return Database(
         settings.pg_dsn,
-        ssl="require",
+        ssl="disable",
         min_size=settings.worker_pg_min_size,
         max_size=settings.worker_pg_max_size,
     )

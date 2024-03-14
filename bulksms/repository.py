@@ -27,8 +27,6 @@ class BulksmsRepository:
     async def create_bulksms(self, data:dict):
         validated_data = BulksmsAbstract(**data)
         bulksms = Bulksms(**validated_data.dict())
-        print(bulksms.id)
-
         query = """
             INSERT INTO bulksms (id, name, status, message, contact_count, workspace_id, all_contacts, total_cost, created_at, modified_at)
             VALUES (:id, :name, :status, :message, :contact_count, :workspace_id, :all_contacts, :total_cost, :created_at, :modified_at)
