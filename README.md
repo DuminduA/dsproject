@@ -2,32 +2,50 @@
 DS Bulksms Simulation
 
 ## About the project
-This project is a simulation of sending sms in bulk. An example could be sending sms to every student in University of Oulu. Let us imagine a scenario having certain credit with us and on each sms sent, a credit of 0.1 will be deducted.Since sending sms and getting delivery reports can be resource intensive so we decided to seperate out components to microservices.  Thus, we separated services with separate databases and separate webservers, but we kept redis common between them. We aim to demonstrate communication between the services and synchronization between the services. 
+This project is a system designed to simulate the process of sending bulk SMS messages, such as broadcasting messages to all students enrolled at the University of Oulu. In this scenario, each SMS sent incurs a cost of 0.1 credit from a predetermined balance.
+
+Recognizing the resource-intensive nature of both sending SMS messages and handling delivery reports, we made the architectural decision to decompose the system into microservices. By doing so, we segmented functionalities into distinct components, each with its own database and web server instance. Despite this separation, we opted to maintain a shared Redis instance to facilitate inter-service communication and synchronization.
+
+The primary objective of this architecture is to showcase effective communication and coordination among the various microservices. Through this setup, we aim to demonstrate how disparate components can seamlessly collaborate to manage the process of sending bulk SMS messages while efficiently handling related tasks, such as credit deduction and delivery status updates.
 
 ## Implementated components:
-Here we have 3 nodes, each node has a different api server. All the nodes can co exist independently. Two of the nodes acts as client-server while one acts as a RPC server.
+In our distributed system architecture, we operate three nodes, each hosting a distinct API server catering to specific functionalities:
+
 
 ![alt text](image.png)
 
 
 
-Node 1: webapi
-Webapi has a separate database with table that has credit i.e, workspace
-
-Node 2: Salesapi 
-Salesapi has a separate database with table bulksms and bulksms_info.
-Node 3: rpc server
-This node has an implementation of gRPC and the stubs 
+1. **Node 1: Webapi**
+   - Webapi functions as a node with its own database, housing tables such as `workspace`, which stores credit information.
 
 
-Since, our primary focus is to demonstrate communication between distributed system. We attempted to demonstrate various ways of message exchange between them, we implemented the following:
+2. **Node 2: Salesapi**
+   - Salesapi operates as another node, managing a separate database comprising tables for `bulksms` and `bulksms_info`. These tables hold data related to bulk SMS campaigns and their associated information.
 
-JobQueue: We implemented background workers as general_worker and sales_worker with job queues to communicate between them.
-gRPC: We implemented gRPC with protos and buffs that would fetch the available credit with get_workspace_credit function. This rpc communication can be carried out by both webapi and salesapi nodes.
-pub/sub: We implemented a pub/sub architecture using redis for subscribing and publishing. We subscribed into a topic named `workspace_credit` and listening to that topic from websocket we got the credit available.
+3. **Node 3: RPC Server**
+   - This node serves as the RPC server, featuring an implementation of `gRPC` and corresponding `stubs` for communication purposes.
+
+Our primary objective is to showcase effective communication between these distributed nodes. To achieve this, we've implemented several mechanisms for message exchange:
 
 
-Since, both the servers webapi and salesapi could accept and transmit messages as long as they had resources on them. However, the read/write operation on the database seemed to be inferior. The sms sending task would be initiated by salesapi via two rest apis `create` and `run`. `create` would create a bulksms campaign ready to run. Whereas `run` would cause the bulksms campaign to run and send sms to the contacts reading from the uploaded csv file. Then salesapi will get response callback to each and every message to the contacts as queued->sent/failed->delivered->undelivered. The main challenge was to update 
+Our primary objective is to showcase effective communication between these distributed nodes. To achieve this, we've implemented several mechanisms for message exchange:
+
+- **JobQueue:** Background workers, namely `general_worker` and `sales_worker`, are employed alongside job queues to facilitate communication between nodes. These workers handle tasks asynchronously, ensuring smooth interaction between different components of the system.
+
+- **gRPC:** Utilizing `gRPC`, we've established communication channels between nodes, leveraging `protos` and `buffs` to execute functions such as fetching available credit via the `get_workspace_credit` method. Both `webapi` and `salesapi` nodes are capable of initiating and responding to RPC communications.
+
+- **Pub/Sub:** To enable real-time message exchange, we've implemented a pub/sub architecture using `Redis`. By subscribing to a topic named `workspace_credit` and listening for updates via WebSocket, we can effectively track changes in credit availability across the system.
+
+
+
+In our setup, both the `webapi` and `salesapi` servers have the capability to send and receive messages, provided they have the necessary resources. However, we encountered performance issues with database read/write operations. The task of sending SMS messages is initiated by the `salesapi` server through two REST APIs: `create(http://localhost:8002/create)` and `run(http://localhost:8002/run)`. The create API is responsible for preparing a bulk SMS campaign for execution, while the run API triggers the actual sending of SMS messages to the contacts listed in an uploaded CSV file.
+
+Upon execution, the salesapi server receives response callbacks for each message sent to the contacts, indicating their status transition from `queued` to s`ent/failed`, `delivered`, or `undelivered`. However, the main challenge lies in efficiently updating these status transitions in the database, given the potentially high volume of messages being processed. Surely, there is a risk of contention for database resources, which can lead to locking mechanisms being invoked. Locks are used to ensure data consistency and prevent concurrent access to the same data by multiple processes. However, they can also introduce bottlenecks and performance issues, especially in situations where multiple transactions are attempting to read or write data concurrently.
+
+Thus there is a need to ensure concurrency mechanisms. Thus in this project we have prepopulated the database `bulksms_info` for each contact before sending sms. And replacing the status by updating the response we get as a callbacks (i.e, `sent/failed`, `delivered/undelivered`).
+
+Moreover, to assess the system's performance, we conducted evaluations using datasets of varying sizes, namely `5contacts.csv` and `5000contacts.csv`, upon triggering the `run` API. This allowed us to analyze the impact of message volume on CPU and memory usage, with the results detailed in the evaluation section below.
 
 
 ## Built with
@@ -137,7 +155,7 @@ pip install -r requirements.txt
 ```
 
 
-
+<!--
 ## Postgres Installation
 
 ### Windows
@@ -186,12 +204,21 @@ GRANT ALL PRIVILEGES ON DATABASE mydatabase TO myuser;
 ```
 psql -U myuser -d mydatabase -h localhost -p 5432
 ```
+-->
 
 ## Docker orchestration
 We can also setup the database and redis using docker 
 ```
 docker-compose -f webapi/docker-compose.yaml up -d
 ```
+
+We can prepopulate the db using these commands
+```
+cat salesdb_dump.sql | docker exec -i db_salesdb psql -U postgres -d salesdb
+cat ds_dump.sql | docker exec -i db_ds psql -U postgres -d ds
+```
+This populates the two databases `salesdb` and `ds` with `salesdb_dump.sql` and `ds_dump.sql` files.
+
 
 ## Migrating the database
 And then running alembic commands as
