@@ -7,6 +7,8 @@ from bulksms import services
 import logging
 from loguru import logger
 
+from system_stats import collect_system_stats, plot_system_stats
+
 
 async def save_bulksms_campaign_info(
     ctx,
@@ -37,3 +39,10 @@ async def save_bulksms_campaign_info(
         )
 
 
+async def generate_system_stat(
+    ctx,
+    duration_seconds: int,
+    contact_count: int
+):
+    cpu_usage_5_contacts, memory_usage_5_contacts = collect_system_stats(duration_seconds)
+    plot_system_stats(cpu_usage_5_contacts, memory_usage_5_contacts, f"API with {contact_count} Contacts")

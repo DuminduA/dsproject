@@ -1,3 +1,4 @@
+from typing import Dict, List
 from shortid import ShortId
 from .repository import BulksmsRepository
 from .models import Bulksms, BulksmsInfo
@@ -128,3 +129,15 @@ class BulksmsServices:
                         sms_cost=price,
                 )
             return info_data 
+        
+    async def add_initial_bulksms_info_data(
+        self,
+        bulksms_id: UUID,
+        contacts: List[Dict]
+    ):
+        await self.bulksms_repository.add_initial_campaign_data(
+            bulksms_id=bulksms_id,
+            contacts=contacts
+        )
+
+            

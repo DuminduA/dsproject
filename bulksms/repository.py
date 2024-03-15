@@ -1,4 +1,5 @@
 import json
+from typing import List
 from database import DbConnection
 from .models import Bulksms, BulksmsInfo
 from sqlalchemy.orm import Session
@@ -32,10 +33,11 @@ class BulksmsRepository:
             VALUES (:id, :name, :status, :message, :contact_count, :workspace_id, :all_contacts, :total_cost, :created_at, :modified_at)
         """
         # Execute the SQL query with parameters
+        new_id=uuid.uuid4()
         await self.db.execute(
             query,
             values={
-                'id': bulksms.id,
+                'id': new_id,
                 'name': bulksms.name,
                 'status': bulksms.status,
                 'message': bulksms.message,
@@ -47,7 +49,7 @@ class BulksmsRepository:
                 "all_contacts": json.dumps(bulksms.all_contacts)
             }
         )
-        return bulksms
+        return new_id
     
     async def update_bulksms_status(self, bulksms_id: uuid.UUID, status: str):
         validated_data = UpdateBulksmsStatus(
@@ -103,6 +105,29 @@ class BulksmsRepository:
             }
         )
         return bulksms_info
+    
+    async def add_initial_campaign_data(self, bulksms_id: uuid.UUID, contacts: List):
+        query = """
+            INSERT INTO bulksms_info (
+                id, bulksms_id, contact_number, contact_name, sms_status, sms_cost
+            ) VALUES (
+                :id, :bulksms_id, :contact_number, :contact_name, :sms_status, :sms_cost 
+            )
+        """
+        values = [
+            {
+                "id": uuid.uuid4(),
+                "bulksms_id": bulksms_id,
+                "contact_number": contact.get("contact_number"),
+                "contact_name": contact.get("contact_name"),
+                "sms_status": "queued",
+                "sms_cost": 0,
+            }
+            for contact in contacts
+        ]
+        await self.db.execute_many(
+            query=query, values=values
+        )
     
     
     async def get_bulksms_info_data(self, bulksms_id: uuid.UUID, contact: str):

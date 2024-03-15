@@ -1,0 +1,4 @@
+CONTAINER ID   NAME         CPU %     MEM USAGE / LIMIT    MEM %     NET I/O           BLOCK I/O        PIDS
+88541d12237f   db_ds        0.00%     35.25MiB / 13.5GiB   0.26%     43.7kB / 13.9kB   152kB / 51.2MB   10
+711ca9534ac9   db_salesdb   0.01%     18.85MiB / 13.5GiB   0.14%     38.6kB / 8.79kB   0B / 1.91MB      7
+12a58c853fa4   redis        0.23%     3.012MiB / 13.5GiB   0.02%     1.26MB / 387kB    0B / 16.4kB      6

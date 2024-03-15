@@ -3,6 +3,8 @@ from arq.connections import RedisSettings
 import bootstrap
 from bulksms.queue_handlers import (
     save_bulksms_campaign_info,
+    generate_system_stat
+
     # task_update_bulksms_campaign
 )
 
@@ -27,6 +29,7 @@ class WorkerSettings:
 
     functions = [
         save_bulksms_campaign_info,
+        generate_system_stat
         # task_update_bulksms_campaign,
     ]
     queue_name = "arq:sales_queue"
